@@ -1,0 +1,8 @@
+{
+  "name": "Trello",
+  "type": "MessageHandler",
+  "description": "",
+  "main": "app.js",
+  "commands": {
+  }
+}

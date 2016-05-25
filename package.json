@@ -1,0 +1,23 @@
+{
+  "name": "akp48-plugin-trello",
+  "version": "0.0.0",
+  "description": "",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AKP48Squared/trello.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preversion": "git checkout master && git pull --ff-only",
+    "postversion": "git push origin master --tags && npm publish"
+  },
+  "author": "Alan H (Feildmaster) <admin@feildmaster.com> (http://feildmaster.com/)",
+  "contributors": [
+    "Austin Peterson <austin@akpwebdesign.com>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "node-trello": "1.1.2"
+  }
+}
