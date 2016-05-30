@@ -1,17 +1,16 @@
 'use strict';
 const http = require("http");
-const url = require("url");
+const URL = require("url");
 const util = require("util");
 const EventEmitter = require("events").EventEmitter;
 const logger = global.logger;
+const AKP48 = global.AKP48;
 
 function serverHandler(req, res) {
   // We must reply 200 on HEAD requests
   if (req.method === "HEAD") {
     return reply(200, res);
   }
-  
-  var url = Url.parse(req.url, true);
   var buffer = [];
   var bufferLength = 0;
   var failed = false, isForm = false;
@@ -37,22 +36,42 @@ function serverHandler(req, res) {
     add(chunk);
   });
   
+  var self = this;
   req.on("end", function (chunk) {
+    //logger.debug(JSON.stringify(req.headers));
     if (failed) return;
     add(chunk);
     
     logger.debug("Received %d bytes from %s", bufferLength, remoteAddress);
     
-    if (req.headers['content-type'] === 'application/x-www-form-urlencoded') return logger.debug("We received a form!");
+    if (req.headers['content-type'] === 'application/x-www-form-urlencoded') return logger.error("We received a form!");
     var data = Buffer.concat(buffer, bufferLength);
     
     // TODO: Verify webhooksignature headers['x-trello-webhook']
     
     data = JSON.parse(data);
+    if (!data) {
+      logger.error("received invalid data from %s, returning 400", remoteAddress);
+      return reply(400, res);
+    }
     
+    // Reply before processing the events... Trello will try again if they don't get a reply
+    reply(200, res);
+    
+    data.request = req;
+    logger.debug(JSON.stringify(data.action));
+    var data = data.action,
+        action = data.type,
+        board = data.data.board.name;
+    //global.AKP48.emit("alert", [board, action].join("/"));
+    self.emit("*", action, data); // Send to "generic" listeners
+    self.emit(board, action, data); // Send to "board" listeners
+    self.emit(action, data); // Send to "action" listeners
   });
   
-  logger.debug(req.method, req.url, remoteAddress);
+  if (!this.checkUrl(URL.parse(req.url, true))) {
+    return fail(404, res);
+  }
   
   if (req.method !== 'POST') {
     return fail(405);
@@ -69,21 +88,51 @@ var webserver = function (options) {
   this.port = options.port || 12345;
   this.host = options.host || "0.0.0.0";
   this.path = options.path || "/trello/callback";
+  
+  this.server = http.createServer(serverHandler.bind(this));
+  EventEmitter.call(this); // Initialize EventEmitter
 };
 
 util.inherits(webserver, EventEmitter);
 
 webserver.prototype.checkUrl = function (url) {
-  logger.silly(url);
   // Pathname is the same, or it starts with pathname
-  return url.pathname === this.path || url.pathname.indexOf(this.path) === 0;
+  return url.pathname === this.path || url.pathname.indexOf(this.path + "/") === 0;
 }
 
 webserver.prototype.listen = function (callback) {
-  this.server.listen(this.port, this.host, function () {
+  var self = this;
+  if (!self.server) { // We've stopped listening at some point
+    self.server = http.createServer(serverHandler.bind(self));
+  }
+  self.server.listen(self.port, self.host, function () {
+    logger.debug("listening for trello webhooks on %s:%d", self.host, self.port);
+    if (typeof callback !== 'function') return;
+    callback();
+  });
+};
+
+webserver.prototype.stop = function (callback) {
+  var self = this;
+  self.server.close(function () {
+    logger.debug('stopped listening for trello webhooks');
+    self.server = null;
     if (typeof callback !== 'function') return;
     callback();
   });
 };
 
 module.exports = webserver;
+
+function reply(statusCode, res) {
+  var message = { message: http.STATUS_CODES[statusCode].toLowerCase() };
+  message.result = statusCode >= 400 ? 'error' : 'ok';
+  message = JSON.stringify(message);
+  var headers = {
+    'Content-Type': 'application/json',
+    'Content-Length': message.length
+  };
+
+  res.writeHead(statusCode, headers);
+  res.end(message);
+}
