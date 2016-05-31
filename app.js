@@ -77,20 +77,22 @@ class app extends PLUGIN {
           card = res.data.card ? res.data.card.name : "",
           old = res.data.old,
           msg, action;
-      if (old.idList) { // Moved
-         msg = `from "${res.data.listBefore.name}" to "${res.data.listAfter.name}"`;
-         action = "moved card";
-      } else if (old.name) { // Renamed
-        msg = `"${old.name}" to "${card}"`;
-        action = "renamed card";
-        card = null;
-      } else if (old.hasOwnProperty("closed")) { // Archived
+      if (old.hasOwnProperty("closed")) { // Archived
         if (old.closed) { // Moved out of archive
           msg = "from archive";
         } else { // Moved to archive
           msg = "to archive";
         }
         action = "moved card";
+      } else if (res.data.card && res.data.card.closed) { // Don't send a message if we're editing an archived card
+        return;
+      } else if (old.idList) { // Moved
+         msg = `from "${res.data.listBefore.name}" to "${res.data.listAfter.name}"`;
+         action = "moved card";
+      } else if (old.name) { // Renamed
+        msg = `"${old.name}" to "${card}"`;
+        action = "renamed card";
+        card = null;
       } else if (old.hasOwnProperty("desc")) { // Description modified
         if (!old.desc) {
           msg = "Added description";
