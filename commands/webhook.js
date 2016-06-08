@@ -40,13 +40,15 @@ Command.prototype.process = function(context, app) {
     idModel: model,
     callbackURL: app.callback,
   };
-  if (desc) tArgs.desc = desc;
+  if (desc) tArgs.description = desc;
   trello.post("webhooks", tArgs, function (err, data) {
     if (err) {
       return global.logger.error("Error while adding webhook", err);
     }
     global.logger.info(JSON.stringify(data));
-    sendMessage(JSON.stringify(data), context);
+    // data.idModel: Model listening to
+    // data.callbackURL: URL responding to
+    sendMessage(`Created Trello Webhook (${data.id})`, context);
   });
 };
 
