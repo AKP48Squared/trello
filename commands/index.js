@@ -11,6 +11,7 @@ module.exports = function() {
         var filename = path.basename(files[i]);
         if (filename === 'index.js') continue;
         var mod = require(files[i]);
+        if (Object.keys(mod).length === 0 && mod.constructor === Object) continue;
         var loadMod = new mod(); // jshint ignore:line
         modules[filename] = loadMod;
       }
