@@ -19,5 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "node-trello": "1.1.2"
+  },
+  "optionalDependencies": {
+    "irc-colors": "^1.2.1"
   }
 }
