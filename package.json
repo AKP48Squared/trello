@@ -21,6 +21,8 @@
     "node-trello": "1.1.2"
   },
   "optionalDependencies": {
+    "bluebird": "^3.4.0",
+    "glob": "^7.0.3",
     "irc-colors": "^1.2.1"
   }
 }
