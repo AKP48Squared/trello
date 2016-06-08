@@ -29,12 +29,12 @@ class app extends PLUGIN {
     var url = this.config.url || this.config.host; // Fallback to host if URL not set
     if (!this.config.key) throw Error("Trello Key required");
     if (!url) throw Error("Trello url/host required, must point to your server (can be your IP)");
-    this.callback = url + ":" + (this.config.port || "12345") + this.config.path;
     this.listener = new Web({
       port: this.config.port,
       host: this.config.host,
       path: this.config.path,
     });
+    this.callback = url + ":" + (this.config.port || "12345") + this.listener.path;
     this.listener.listen();
     this.trello = new Trello(this.config.key, this.config.token);
     
