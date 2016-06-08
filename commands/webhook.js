@@ -10,8 +10,14 @@ Command.prototype.process = function(context, app) {
   var sendMessage = app._AKP48.sendMessage;
   var model, desc;
   var args = context.args;
-  if (!args.length) { // We should be storing webhooks and returning the ids of webhooks that have been created
-    return;
+  if (!args.length) {
+    if (!app.config.token) return;
+    return trello.get(`tokens/${app.config.token}/webhooks`, function (err, data) {
+      if (err) {
+        return global.logger.error("Error while retreiving existing webhooks", err);
+      }
+      sendMessage(JSON.stringify(data), context); // TODO: Update message
+    });
   }
   
   switch(args[0].toLowerCase()) {
