@@ -7,10 +7,6 @@ const logger = global.logger;
 const AKP48 = global.AKP48;
 
 function serverHandler(req, res) {
-  // We must reply 200 on HEAD requests
-  if (req.method === "HEAD") {
-    return reply(200, res);
-  }
   var buffer = [];
   var bufferLength = 0;
   var failed = false, isForm = false;
@@ -69,8 +65,14 @@ function serverHandler(req, res) {
     self.emit(action, data); // Send to "action" listeners
   });
   
+  // Fail if the URL isn't correct
   if (!this.checkUrl(URL.parse(req.url, true))) {
-    return fail(404, res);
+    return fail(404);
+  }
+  
+  // We must reply 200 on HEAD requests
+  if (req.method === "HEAD") {
+    return reply(200, res);
   }
   
   if (req.method !== 'POST') {
