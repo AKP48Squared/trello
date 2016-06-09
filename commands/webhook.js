@@ -51,7 +51,7 @@ Command.prototype.process = function(context, app) {
   }));
   
   function handleHook(onError, onData) {
-    if (!(onError && onData))) {
+    if (!(onError && onData)) {
       throw new Error("handleHook requires at least one parameter!");
     } else if (!onData && typeof onError !== 'function') {
       throw new Error("handleHook requires a function to handle data!");
