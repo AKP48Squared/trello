@@ -40,7 +40,11 @@ class app extends PLUGIN {
     
     var request = this.trello.request.bind(this.trello);
     this.trello.request = function (method, uri, args, callback) {
-      request(method, "/1/"+uri, args, callback);
+      var url = "/1/" + uri;
+      if (!callback) {
+        return request(method, url, args);
+      }
+      request(method, url, args, callback);
     };
     var self = this;
     require('./commands').then(function(res) {
