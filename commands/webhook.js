@@ -48,7 +48,7 @@ Command.prototype.process = function(context, app) {
     // data.callbackURL: URL responding to
     // data.active: on/off
     sendMessage(`Created Trello Webhook (${data.id})`, context);
-  });
+  }));
   
   function handleHook(onError, onData) {
     if (!(onError && onData))) {
